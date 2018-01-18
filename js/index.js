@@ -1,9 +1,17 @@
 var app=angular.module('myapp',['ng','ngRoute'])
 .config(function($routeProvider){
   $routeProvider
-  .when('/first',{
-      templateUrl :'TPL/first.html',
-      controller : 'first'
+  .when('/config',{
+      templateUrl :'TPL/config.html',
+      controller : 'config'
+  })
+  .when('/user',{
+      templateUrl:'TPL/user.html',
+      controller : 'user'
+  })
+  .when('/user_modify',{
+      templateUrl:'TPL/user_modify.html',
+      controller:'user_modify'
   })
   .when('/second',{
       templateUrl : 'TPL/second.html',
@@ -26,19 +34,38 @@ var app=angular.module('myapp',['ng','ngRoute'])
       controller : 'six',
   })
   .otherwise({
-     redirectTo : '/first'
+     redirectTo : '/config'
   })
 })
   .controller('mycontroller',function($scope,$http,$window,$location){
+        pathUrl = $location.path();
+        //console.log(pathUrl);
+        if($window.localStorage.getItem("key")===null){
+            $window.location = "/admin";
+        }
+        $scope.selected = pathUrl;
+        $scope.isSelected = function (index) {
+            return $scope.selected === index;
+        };
+        $scope.setSelected = function (index) {
+            $scope.selected = index;
+        };
+        $scope.logout = function(){
+            $window.localStorage.removeItem("key");
+        }
+        $scope.userModify = function(){
+            console.log("demo");
+        }
 
   })
-  .controller('first',function($scope,$window,$location){
+  .controller('config',function($scope,$window,$location){
       $scope.next=function(){
-        $location.path('/second');
+        $location.path('/config');
       }
 
   })
   .controller('second',function($scope,$http,$location){
+      $scope.className = "active-menu";
       $http({medth:'get',url:'data/list.json'}).success(function(data){
         $scope.sub=data;
     })
@@ -132,3 +159,52 @@ var app=angular.module('myapp',['ng','ngRoute'])
 
 
   })
+  .controller('user',function($window,$scope,$http,$location){
+        console.log("ajax");
+      $http({
+        method: "POST",
+        url: "/user",
+        data:{}
+      }).
+      success(function(data, status) {
+       //$scope.status = status;
+        console.log(data);
+        $scope.users = data;
+      }).
+      error(function(data, status) {
+       //$scope.data = data || "Request failed";
+       //$scope.status = status;
+     }); 
+  })
+  .controller('user_modify',function($window,$scope,$http,$location){
+       $scope.username = $location.search().username;
+        
+       $scope.user_modify = function(){
+             name = $location.search().username;  
+             password = $('#user_modify_password').val();
+             email = $('#user_modify_email').val();
+            console.log(name);
+            $http({
+                 method: "POST",
+                 url: "/user_modify",
+                 data:{
+                        "user_modify_name":name,
+                        "user_modify_password":password,
+                        "user_modify_email":email
+                    }
+                }). 
+                success(function(data, status) {
+                 //$scope.status = status;
+                 console.log(data);
+                 $scope.users = data;
+                }). 
+                error(function(data, status) {
+                //$scope.data = data || "Request failed";
+                //$scope.status = status;
+         }); 
+       } 
+        
+
+
+
+ })
